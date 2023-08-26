@@ -9,6 +9,6 @@ public class Tan implements ActivationFunction {
 
     @Override
     public double derivative(double num) {
-        throw new RuntimeException("Not implemented");
+        return 1 / (Math.pow(Math.cos(num), 2.0));
     }
 }

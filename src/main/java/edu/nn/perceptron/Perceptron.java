@@ -59,34 +59,34 @@ public class Perceptron<INPUT, OUTPUT> {
         initOutputLayer(outputValues);
     }
 
-    private void initInputLayer(Integer size) {
+    private void initInputLayer(final Integer size) {
         log.info("Creating input layer ({} neurons)", size);
         var currentLayer = new LayerImpl(size, biasGenerator);
         input = currentLayer;
     }
 
-    private void initMiddleLayers(List<Integer> neuronCountsForLayers) {
+    private void initMiddleLayers(final List<Integer> neuronCountsForLayers) {
         middleLayerList = new ArrayList<>(neuronCountsForLayers.size());
-        for (int i = 0; i < neuronCountsForLayers.size(); i++) {
+        for (var i = 0; i < neuronCountsForLayers.size(); i++) {
             final var layerSize = neuronCountsForLayers.get(i);
             log.info("Creating middle layer number {} ({} neurons)", i + 1, layerSize);
-            var lastLayer = i == 0 ? input : middleLayerList.get(middleLayerList.size() - 1);
-            var newLayer = new LayerImpl(layerSize, biasGenerator);
+            final var lastLayer = i == 0 ? input : middleLayerList.get(middleLayerList.size() - 1);
+            final var newLayer = new LayerImpl(layerSize, biasGenerator);
             createConnectionsBetweenLayers(lastLayer, newLayer);
             middleLayerList.add(newLayer);
         }
     }
 
-    private void initOutputLayer(List<OUTPUT> outputValues) {
+    private void initOutputLayer(final List<OUTPUT> outputValues) {
         log.info("Creating output layer ({} neurons)", outputValues.size());
         output = new LayerImpl(outputValues, biasGenerator);
         final var layer = middleLayerList.isEmpty() ? input : middleLayerList.get(middleLayerList.size() - 1);
         createConnectionsBetweenLayers(layer, output);
     }
 
-    private void createConnectionsBetweenLayers(Layer<?> first, Layer<?> second) {
-        for (Neuron firstLayerNeuron : first.neurons()) {
-            for (Neuron secondLayerNeuron : second.neurons()) {
+    private void createConnectionsBetweenLayers(final Layer<?> first, final Layer<?> second) {
+        for (var firstLayerNeuron : first.neurons()) {
+            for (var secondLayerNeuron : second.neurons()) {
                 var connection = new ConnectionImpl(firstLayerNeuron, secondLayerNeuron);
                 connection.weight(weightsGenerator.generateWeight());
                 firstLayerNeuron.rightConnections().add(connection);
@@ -97,8 +97,8 @@ public class Perceptron<INPUT, OUTPUT> {
         second.previous(first);
     }
 
-    public void train(INPUT data, OUTPUT answer) {
-        var preparedInputs = inputPreparator.transform(data);
+    public void train(final INPUT data, final OUTPUT answer) {
+        final var preparedInputs = inputPreparator.transform(data);
         feedForward(preparedInputs);
         updateError(answer);
         updateWeights();
@@ -121,7 +121,7 @@ public class Perceptron<INPUT, OUTPUT> {
         } while (currentLayer.previous() != null);
     }
 
-    private void updateError(OUTPUT answer) {
+    private void updateError(final OUTPUT answer) {
         output.neurons().forEach(outputNeuron -> {
             final var error = errorFunction.calculateError(
                     outputNeuron.value(),
@@ -144,17 +144,17 @@ public class Perceptron<INPUT, OUTPUT> {
         }
     }
 
-    public OUTPUT predict(INPUT data) {
-        var preparedInputs = inputPreparator.transform(data);
+    public OUTPUT predict(final INPUT data) {
+        final var preparedInputs = inputPreparator.transform(data);
         feedForward(preparedInputs);
-        var outputNeuron = output.neurons().stream()
+        final var outputNeuron = output.neurons().stream()
                 .max(neuronValueComparator)
                 .get();
 
         return outputNeuron.answer();
     }
 
-    private void feedForward(List<Double> data) {
+    private void feedForward(final List<Double> data) {
         if (data.size() != input.neurons().size()) {
             throw new IllegalArgumentException("Input data size is not equal to first neuron layer size");
         }
@@ -165,7 +165,7 @@ public class Perceptron<INPUT, OUTPUT> {
 
         var current = input.next();
         do {
-            for (Neuron<?> n : current.neurons()) {
+            for (var n : current.neurons()) {
                 var weightedSum = (n.leftConnections()).stream()
                         .mapToDouble(c -> c.weight() * c.opposite(n).value())
                         .sum();

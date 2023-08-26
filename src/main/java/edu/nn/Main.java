@@ -23,16 +23,16 @@ public class Main {
     private static final double ratio = 0.8;
 
     public static void main(String[] args) throws IOException {
-        List<String> allData = IOUtils.readLines(new FileReader("data/iris.csv"));
+        var allData = IOUtils.readLines(new FileReader("data/iris.csv"));
         Collections.shuffle(allData);
         log.info("All data count: {}", allData.size());
 
-        var trainData = getTrainData(allData);
-        var checkData = getCheckData(allData);
+        final var trainData = getTrainData(allData);
+        final var checkData = getCheckData(allData);
 
         log.info("Train data: {}, Check data: {}", trainData.size(), checkData.size());
 
-        Perceptron<Iris, String> nn = Perceptron.<Iris, String>builder()
+        final var nn = Perceptron.<Iris, String>builder()
                 .inputSize(4)
                 .middleLayersSizes(List.of(3))
                 .outputValues(List.of("Setosa", "Versicolor", "Virginica"))
@@ -44,6 +44,7 @@ public class Main {
                 .learningRate(Perceptron.DEFAULT_LEARNING_RATE)
                 .build();
 
+        checkNetwork(checkData, nn);
         trainNetwoek(trainData, nn);
         checkNetwork(checkData, nn);
 
@@ -52,52 +53,45 @@ public class Main {
 
     private static void checkNetwork(List<Iris> checkData, Perceptron<Iris, String> nn) {
         log.info("Checking network");
-        List<String> results = new ArrayList<>();
-        for (Iris iris : checkData) {
-            final String predict = nn.predict(iris);
 
-            if (iris.type().equals(predict)) {
-                results.add("Success");
-            } else {
-                results.add("Failure");
-            }
-        }
-        log.info(
-                "Network was checked. Results:Success: {}, Failure: {}",
-                results.stream()
-                        .filter(s -> s.equals("Success"))
-                        .count(),
-                results.stream()
-                        .filter(s -> s.equals("Failure"))
-                        .count()
-        );
+        final var successCount = checkData.stream()
+                .map(iris -> {
+                    final var predict = nn.predict(iris);
+                    return iris.type().equals(predict);
+                })
+                .filter(Main::onlySuccess)
+                .count();
+
+        log.info("Network was checked. Results: Success: {}, Failure: {}", successCount, checkData.size() - successCount);
+    }
+
+    private static boolean onlySuccess(boolean b) {
+        return b;
     }
 
     private static void trainNetwoek(List<Iris> trainData, Perceptron<Iris, String> nn) {
         log.info("Training network");
         for (int i = 0; i < 300; i++) {
-            for (Iris iris : trainData) {
-                nn.train(iris, iris.type());
-            }
+            trainData.forEach(iris -> nn.train(iris, iris.type()));
         }
         log.info("Network was trained");
     }
 
     private static List<Iris> getTrainData(List<String> allData) {
-        int trainDataSize = (int) (allData.size() * ratio);
-        final List<String> trainDataStr = allData.subList(0, trainDataSize);
+        final int trainDataSize = (int) (allData.size() * ratio);
+        final var trainDataStr = allData.subList(0, trainDataSize);
         return parseData(trainDataStr);
     }
 
     private static List<Iris> getCheckData(List<String> allData) {
-        int trainDataSize = (int) (allData.size() * ratio);
-        final List<String> checkDataStr = allData.subList(trainDataSize, allData.size());
+        final var trainDataSize = (int) (allData.size() * ratio);
+        final var checkDataStr = allData.subList(trainDataSize, allData.size());
         return parseData(checkDataStr);
     }
 
     private static ArrayList<Iris> parseData(List<String> checkDataStr) {
         final var result = new ArrayList<Iris>();
-        for (String check : checkDataStr) {
+        for (var check : checkDataStr) {
             final var scanner = new Scanner(check);
             scanner.useDelimiter(",");
             result.add(
